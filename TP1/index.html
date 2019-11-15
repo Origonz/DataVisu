@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+
+<head>
+	<meta charset="utf-8">
+	<script src="https://d3js.org/d3.v5.min.js"></script>
+	<style type="text/css">
+		.mini text {
+			font: 9px sans-serif;
+		}
+
+		.color0 {
+			fill: darksalmon;
+			stroke-width: 6;
+		}
+
+		.color1 {
+			fill: darkgreen;
+			fill-opacity: .7;
+			stroke-width: 6;
+		}
+
+		.color2 {
+			fill: slategray;
+			fill-opacity: .7;
+			stroke-width: 6;
+		}
+
+		.colorhover {
+			fill: red;
+			fill-opacity: .7;
+			stroke-width: 6;
+		}
+	</style>
+</head>
+
+<body>
+	<script type="text/javascript">
+		//data
+		let prenoms = ["Valentin", "Arnaud", "Bob"],
+			nbEtudiants = prenoms.length,
+			items = [
+				{ "id": 0, "jour": "lundi", "start": 0, "end": 70 },
+				{ "id": 0, "jour": "mardi", "start": 230, "end": 350 },
+				{ "id": 0, "jour": "mercredi", "start": 485, "end": 600 },
+				{ "id": 0, "jour": "jeudi", "start": 670, "end": 800 },
+				{ "id": 0, "jour": "vendredi", "start": 880, "end": 1000 },
+				{ "id": 1, "jour": "lundi", "start": 0, "end": 120 },
+				{ "id": 1, "jour": "mardi", "start": 250, "end": 400 },
+				{ "id": 1, "jour": "mercredi", "start": 500, "end": 600 },
+				{ "id": 1, "jour": "jeudi", "start": 700, "end": 850 },
+				{ "id": 1, "jour": "vendredi", "start": 1000, "end": 1110 },
+				{ "id": 2, "jour": "lundi", "start": 0, "end": 60 },
+				{ "id": 2, "jour": "mardi", "start": 230, "end": 400 },
+				{ "id": 2, "jour": "mercredi", "start": 440, "end": 600 },
+				{ "id": 2, "jour": "jeudi", "start": 690, "end": 800 },
+				{ "id": 2, "jour": "vendredi", "start": 920, "end": 1200 }
+			]
+			timeBegin = 0,
+			timeEnd = 1200; //5j * 24h * 10m
+	</script>
+	<script type="text/javascript">
+		w = 750,
+		h = 500,
+		height = nbEtudiants * 30 + 50;
+
+		// TODO scales
+
+		// chart
+		let chart = d3.select("body")
+			.append("svg")
+			.attr("width", w)
+			.attr("height", h)
+			.attr("class", "chart");
+
+		let y = d3.scaleLinear()
+			.domain([0, d3.max(items.map(((i) => (i["id"]))))])
+			.range([0, 100]);
+
+		let x = d3.scaleLinear()
+			.domain([timeBegin, timeEnd])
+			.range([100, w]);
+
+		chart.selectAll("rect").data(items).enter()
+			.append("rect")
+			.attr("width", (i) => ((i["end"] - i["start"]) / (timeEnd - timeBegin) * (w - 100)))
+			.attr("height", 23)
+			.attr("x", (i) => (x(i["start"])))
+			.attr("y", (i) => (100 + y(i["id"])))
+			.attr("class",  (i) => (i["id"] == 0 ? "color0" : i["id"] == 1 ? "color1" : "color2"))
+			.on("mouseover", function() {d3.select(this).attr("class", "colorhover")})
+			.on("mouseout", function(i) {
+				i["id"] == 0 ? d3.select(this).transition().duration(500).attr("class", "color0") :
+				i["id"] == 1 ? d3.select(this).transition().duration(500).attr("class", "color1") :
+				d3.select(this).transition().duration(500).attr("class", "color2")
+			});
+
+		chart.selectAll("text").data(prenoms).enter().append("text")
+			.text(i => i)
+			.attr("y", (i, j) => (j * 150 / 3 + 112))
+			.attr("x", 40)
+			.attr("class", "mini text");
+
+		chart.selectAll("text2").data(items.reduce((tab, i) => (
+			tab.includes(i["jour"])? tab : tab + [i["jour"]] + ["/"]
+			), []).split("/"))
+			.enter().append("text")
+			.text((i) => (i))
+			.attr("y", 250)
+			.attr("x", (d, i) => (i * (w - 100) / 5 + 120))
+			.attr("class", "mini text");
+
+	</script>
+</body>
+
+</html>
