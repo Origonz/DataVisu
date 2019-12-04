@@ -1,3 +1,6 @@
+<!-- Arnaud Bressot 11505990 -->
+<!-- Valentin Comas 11500223 -->
+
 <!DOCTYPE html>
 <head>
   <meta charset="utf-8">
@@ -21,101 +24,6 @@
 </head>
 
 <body>
-  <!-- <script>
-    var width = 700,
-    height = 580;
-    
-    var svg = d3.select( "body" )
-    .append( "svg" )
-    .attr( "width", width )
-    .attr( "height", height );
-    
-    // On rajoute un groupe englobant toute la visualisation pour plus tard
-    var g = svg.append( "g" ); 
-    
-    var projection = d3.geoConicConformal()
-    .center([2.454071, 46.279229])
-    .scale(2800);
-    
-    var path = d3.geoPath()
-    .projection(projection);
-    
-    var tooltip = d3.select('body').append('div')
-    .attr('class', 'hidden tooltip');
-    
-    d3.json("https://lyondataviz.github.io/teaching/lyon1-m2/2019/data/regions.json").then(function(jsondata) { 
-      g.selectAll("path")
-      .data(jsondata.features)
-      .enter()
-      .append("path")
-      .attr( "fill", "#ffffff" )
-      .attr("d", path);
-      
-    });
-    
-    
-    
-    d3.csv("https://lyondataviz.github.io/teaching/lyon1-m2/2019/data/GrippeFrance2014.csv").then(function(data) {
-      
-      d3.json("https://lyondataviz.github.io/teaching/lyon1-m2/2019/data/regions.json").then(function(json) {
-        //On fusionne les donnees avec le GeoJSON des regions
-        var dataValue = {};
-        var min = 1000;
-        var max = 0;
-        for (var i = 0; i < data.length; i++) {
-          var somme = 0
-          for (const date in data[i]) {
-            if (date.search("/11/") != -1){
-              somme += parseFloat(data[i][date])
-            }
-          }
-          dataValue[data[i].region] = somme;
-          if (dataValue[data[i].region] < min) {
-            min = dataValue[data[i].region];
-          }
-          if (dataValue[data[i].region] > max) {
-            max = dataValue[data[i].region];
-          }
-        }
-        
-        var color = d3.scaleLinear().domain([0, max])
-        .range([255,0]);
-        
-        svg.selectAll("path")
-        .attr("value",function(d) {
-          return dataValue[d.properties.nom];
-        })
-        .style("fill", function(d) {
-          nuance = color(dataValue[d.properties.nom] - min)
-          hexNuance = Math.floor(nuance).toString(16)
-          return "#40" + hexNuance + "40"	  
-        }).on('mousemove', function(d) {
-          // on recupere la position de la souris
-          var mousePosition = d3.mouse(this);
-          // on affiche le toolip
-          tooltip.classed('hidden', false)
-          // on positionne le tooltip en fonction 
-          // de la position de la souris
-          .attr('style', 'left:' + (mousePosition[0] + 15) +
-          'px; top:' + (mousePosition[1] - 35) + 'px')
-          // on recupere le nom de l'etat 
-          .html(function(){
-            return d.properties.nom + ": " + dataValue[d.properties.nom]
-          });
-        })
-        .on('mouseout', function() {
-          // on cache le toolip
-          tooltip.classed('hidden', true);
-        });
-      });
-    });
-    
-    
-  </script> -->
-  <div>
-    <input id="slider" type="range" value="1" min="1" max="52" step="1" oninput="week.value = slider.value"/>
-    <span id="week">05/01/14</span>
-  </div>
   <script>
     var width = 700,
     height = 580;
@@ -137,7 +45,7 @@
     
     var tooltip = d3.select('body').append('div')
     .attr('class', 'hidden tooltip');
-
+    
     d3.json("https://lyondataviz.github.io/teaching/lyon1-m2/2019/data/regions.json").then(function(jsondata) { 
       g.selectAll("path")
       .data(jsondata.features)
@@ -147,6 +55,58 @@
       .attr("d", path);
       
     });
+    
+    
+    
+    d3.csv("https://lyondataviz.github.io/teaching/lyon1-m2/2019/data/GrippeFrance2014.csv").then(function(data) {
+      
+      d3.json("https://lyondataviz.github.io/teaching/lyon1-m2/2019/data/regions.json").then(function(json) {
+        //On fusionne les donnees avec le GeoJSON des regions
+        var nbFlu = {};
+        for (var i = 0; i < data.length; i++) {
+          var somme = 0
+          for (const date in data[i]) {
+            if (date.search("/11/") != -1){
+              somme += parseFloat(data[i][date])
+            }
+          }
+          nbFlu[data[i].region] = somme;
+        }
+        
+        var color = d3.scaleLinear().domain([0, 255])
+        .range([255,0]);
+        
+        svg.selectAll("path")
+        .attr("value",function(d) {
+          return nbFlu[d.properties.nom];
+        })
+        .style("fill", function(d) {
+          col = color(nbFlu[d.properties.nom]);
+          if (nbFlu[d.properties.nom] > 255) {
+            col = color(255);
+          }
+          hexCol = Math.floor(col).toString(16);
+          if (hexCol.length == 1) {
+            hexCol = "0" + hexCol;
+          }
+          return "#40" + hexCol + "40";
+        }).on('mousemove', function(d) {
+          var mousePos = d3.mouse(this);
+          tooltip.classed('hidden', false)
+          .attr('style', 'left:' + (mousePos[0] + 15) +
+          'px; top:' + (mousePos[1] - 35) + 'px')
+          .html(function(){
+            return d.properties.nom + ": " + nbFlu[d.properties.nom]
+          });
+        })
+        .on('mouseout', function() {
+          tooltip.classed('hidden', true);
+        });
+      });
+    });
+    
+    var width = 700,
+    height = 580;
     
     d3.csv("https://lyondataviz.github.io/teaching/lyon1-m2/2019/data/GrippeFrance2014.csv").then(function(data) {
       d3.json("https://lyondataviz.github.io/teaching/lyon1-m2/2019/data/regions.json").then(function(json) {
@@ -168,54 +128,51 @@
           carte = svg.selectAll("path")
           .data(json.features);
           
-          var dataValue = {};
-          var min = 1000;
-          var max = 0;
+          var nbFlu = {};
           for (var i = 0; i < data.length; i++) {
-            dataValue[data[i].region] = data[i][currentWeek];
-            if (dataValue[data[i].region] < min) {
-              min = dataValue[data[i].region];
-            }
-            if (dataValue[data[i].region] > max) {
-              max = dataValue[data[i].region];
-            }
+            nbFlu[data[i].region] = data[i][currentWeek];
           }
           
           var color = d3.scaleLinear().domain([0, 255])
           .range([255,0]);
+          
           // code en cas de mise a jour de la carte / de changement de semaine
           carte
           .attr("class", "update")
           .attr("value",function(d) {
-            return dataValue[d.properties.nom];
+            return nbFlu[d.properties.nom];
           })
           .style("fill", function(d) {
-            nuance = color(dataValue[d.properties.nom]);
-            hexNuance = Math.floor(nuance).toString(16);
-            return "#40" + hexNuance + "40";
-          }).on('mousemove', function(d) {
-            // on recupere la position de la souris
-            var mousePosition = d3.mouse(this);
-            // on affiche le toolip
+            col = color(nbFlu[d.properties.nom]);
+            if (nbFlu[d.properties.nom] > 255) {
+              col = color(255);
+            }
+            hexCol = Math.floor(col).toString(16);
+            if (hexCol.length == 1) {
+              hexCol = "0" + hexCol;
+            }
+            return "#30" + hexCol + "30";
+          })
+          .on('mousemove', function(d) {
+            var mousePos = d3.mouse(this);
             tooltip.classed('hidden', false)
-            // on positionne le tooltip en fonction 
-            // de la position de la souris
-            .attr('style', 'left:' + (mousePosition[0] + 15) +
-            'px; top:' + (mousePosition[1] - 35) + 'px')
-            // on recupere le nom de l'etat 
+            .attr('style', 'left:' + (mousePos[0] + 15) +
+            'px; top:' + (mousePos[1] - 35) + 'px')
             .html(function(){
-              return d.properties.nom + ": " + dataValue[d.properties.nom]
+              return d.properties.nom + ": " + nbFlu[d.properties.nom]
             });
           })
           .on('mouseout', function() {
-            // on cache le toolip
             tooltip.classed('hidden', true);
           });
+          
+          
         }
       });
     });
   </script>
-  
-  
-  
+  <div>
+    <input id="slider" type="range" value="1" min="1" max="52" step="1" oninput="week.value = slider.value"/>
+    <span id="week">02/11/2014</span>
+  </div>
 </body>
