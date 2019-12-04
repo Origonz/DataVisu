@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <style>
+    body { margin:0;position:fixed;top:0;right:0;bottom:0;left:0; }
+    
+    .hidden {
+      display: none;
+    }
+    div.tooltip {
+      color: #222;
+      background-color: #fff;
+      padding: .5em;
+      text-shadow: #f5f5f5 0 1px 0;
+      border-radius: 2px;
+      opacity: 0.9;
+      position: absolute;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- <script>
+    var width = 700,
+    height = 580;
+    
+    var svg = d3.select( "body" )
+    .append( "svg" )
+    .attr( "width", width )
+    .attr( "height", height );
+    
+    // On rajoute un groupe englobant toute la visualisation pour plus tard
+    var g = svg.append( "g" ); 
+    
+    var projection = d3.geoConicConformal()
+    .center([2.454071, 46.279229])
+    .scale(2800);
+    
+    var path = d3.geoPath()
+    .projection(projection);
+    
+    var tooltip = d3.select('body').append('div')
+    .attr('class', 'hidden tooltip');
+    
+    d3.json("https://lyondataviz.github.io/teaching/lyon1-m2/2019/data/regions.json").then(function(jsondata) { 
+      g.selectAll("path")
+      .data(jsondata.features)
+      .enter()
+      .append("path")
+      .attr( "fill", "#ffffff" )
+      .attr("d", path);
+      
+    });
+    
+    
+    
+    d3.csv("https://lyondataviz.github.io/teaching/lyon1-m2/2019/data/GrippeFrance2014.csv").then(function(data) {
+      
+      d3.json("https://lyondataviz.github.io/teaching/lyon1-m2/2019/data/regions.json").then(function(json) {
+        //On fusionne les donnees avec le GeoJSON des regions
+        var dataValue = {};
+        var min = 1000;
+        var max = 0;
+        for (var i = 0; i < data.length; i++) {
+          var somme = 0
+          for (const date in data[i]) {
+            if (date.search("/11/") != -1){
+              somme += parseFloat(data[i][date])
+            }
+          }
+          dataValue[data[i].region] = somme;
+          if (dataValue[data[i].region] < min) {
+            min = dataValue[data[i].region];
+          }
+          if (dataValue[data[i].region] > max) {
+            max = dataValue[data[i].region];
+          }
+        }
+        
+        var color = d3.scaleLinear().domain([0, max])
+        .range([255,0]);
+        
+        svg.selectAll("path")
+        .attr("value",function(d) {
+          return dataValue[d.properties.nom];
+        })
+        .style("fill", function(d) {
+          nuance = color(dataValue[d.properties.nom] - min)
+          hexNuance = Math.floor(nuance).toString(16)
+          return "#40" + hexNuance + "40"	  
+        }).on('mousemove', function(d) {
+          // on recupere la position de la souris
+          var mousePosition = d3.mouse(this);
+          // on affiche le toolip
+          tooltip.classed('hidden', false)
+          // on positionne le tooltip en fonction 
+          // de la position de la souris
+          .attr('style', 'left:' + (mousePosition[0] + 15) +
+          'px; top:' + (mousePosition[1] - 35) + 'px')
+          // on recupere le nom de l'etat 
+          .html(function(){
+            return d.properties.nom + ": " + dataValue[d.properties.nom]
+          });
+        })
+        .on('mouseout', function() {
+          // on cache le toolip
+          tooltip.classed('hidden', true);
+        });
+      });
+    });
+    
+    
+  </script> -->
+  <div>
+    <input id="slider" type="range" value="1" min="1" max="52" step="1" oninput="week.value = slider.value"/>
+    <span id="week">05/01/14</span>
+  </div>
+  <script>
+    var width = 700,
+    height = 580;
+    
+    var svg = d3.select( "body" )
+    .append( "svg" )
+    .attr( "width", width )
+    .attr( "height", height );
+    
+    // On rajoute un groupe englobant toute la visualisation pour plus tard
+    var g = svg.append( "g" ); 
+    
+    var projection = d3.geoConicConformal()
+    .center([2.454071, 46.279229])
+    .scale(2800);
+    
+    var path = d3.geoPath()
+    .projection(projection);
+    
+    var tooltip = d3.select('body').append('div')
+    .attr('class', 'hidden tooltip');
+
+    d3.json("https://lyondataviz.github.io/teaching/lyon1-m2/2019/data/regions.json").then(function(jsondata) { 
+      g.selectAll("path")
+      .data(jsondata.features)
+      .enter()
+      .append("path")
+      .attr( "fill", "#ccc" )
+      .attr("d", path);
+      
+    });
+    
+    d3.csv("https://lyondataviz.github.io/teaching/lyon1-m2/2019/data/GrippeFrance2014.csv").then(function(data) {
+      d3.json("https://lyondataviz.github.io/teaching/lyon1-m2/2019/data/regions.json").then(function(json) {
+        
+        
+        var weeksArray = Object.keys(data[0]);
+        
+        d3.select("#slider").on("input", function() {
+          updateViz(+this.value);
+        });
+        
+        function updateViz(value) {
+          // console.log("update " + value + "value");
+          d3.select('#week').html(weeksArray[value]);
+          drawMap(weeksArray[value]);
+        }
+        
+        function drawMap(currentWeek) {
+          carte = svg.selectAll("path")
+          .data(json.features);
+          
+          var dataValue = {};
+          var min = 1000;
+          var max = 0;
+          for (var i = 0; i < data.length; i++) {
+            dataValue[data[i].region] = data[i][currentWeek];
+            if (dataValue[data[i].region] < min) {
+              min = dataValue[data[i].region];
+            }
+            if (dataValue[data[i].region] > max) {
+              max = dataValue[data[i].region];
+            }
+          }
+          
+          var color = d3.scaleLinear().domain([0, 255])
+          .range([255,0]);
+          // code en cas de mise a jour de la carte / de changement de semaine
+          carte
+          .attr("class", "update")
+          .attr("value",function(d) {
+            return dataValue[d.properties.nom];
+          })
+          .style("fill", function(d) {
+            nuance = color(dataValue[d.properties.nom]);
+            hexNuance = Math.floor(nuance).toString(16);
+            return "#40" + hexNuance + "40";
+          }).on('mousemove', function(d) {
+            // on recupere la position de la souris
+            var mousePosition = d3.mouse(this);
+            // on affiche le toolip
+            tooltip.classed('hidden', false)
+            // on positionne le tooltip en fonction 
+            // de la position de la souris
+            .attr('style', 'left:' + (mousePosition[0] + 15) +
+            'px; top:' + (mousePosition[1] - 35) + 'px')
+            // on recupere le nom de l'etat 
+            .html(function(){
+              return d.properties.nom + ": " + dataValue[d.properties.nom]
+            });
+          })
+          .on('mouseout', function() {
+            // on cache le toolip
+            tooltip.classed('hidden', true);
+          });
+        }
+      });
+    });
+  </script>
+  
+  
+  
+</body>
