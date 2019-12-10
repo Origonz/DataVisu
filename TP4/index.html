@@ -1,0 +1,159 @@
+<!-- Arnaud Bressot 11505990 -->
+<!-- Valentin Comas 11500223 -->
+
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <style>
+    body { margin:0;position:fixed;top:0;right:0;bottom:0;left:0; }
+    
+    .hidden {
+      display: none;
+    }
+    
+    div.guide {
+      color: #000000;
+      background-color: #11ffef00;
+      padding: .5em;
+      text-shadow: #f5f5f5 0 1px 0;
+      border-radius: 2px;
+      opacity: 0.9;
+      position: absolute;
+    }
+  </style>
+</head>
+
+<body>
+  <script>
+    function createAdjacencyMatrix(nodes,edges) {
+      var edgeHash = {};
+      for (x in edges) {
+        var id = edges[x].source + "-" + edges[x].target;
+        edgeHash[id] = edges[x];
+      }
+      matrix = [];
+      //create all possible edges
+      for (const [a, node_a] of nodes.entries()) {
+        for (const [b, node_b] of nodes.entries()) {
+          var grid = {id: node_a.id + "-" + node_b.id, x: a, y: b, sharedfollowers: 0};
+          if (edgeHash[grid.id]) {
+            grid.sharedfollowers = parseInt(edgeHash[grid.id].sharedfollowers);
+          }
+          matrix.push(grid);
+        }
+      }
+      return matrix;
+    }    
+    
+    d3.csv("https://lyondataviz.github.io/teaching/lyon1-m2/2019/data/liens.csv").then(function(links) {
+      d3.csv("https://lyondataviz.github.io/teaching/lyon1-m2/2019/data/noeuds.csv").then(function(nodes) {
+        var matrix = createAdjacencyMatrix(nodes, links);
+        var maxSF = 0;
+        for (m of matrix.entries()) {
+          if(m[1].sharedfollowers > maxSF) {
+            maxSF = m[1].sharedfollowers;
+          }
+        }
+        
+        maxY = 0;
+        for (m of matrix.entries()) {
+          if(m[1].y > maxY) {
+            maxY = m[1].y;
+          }
+        }
+        
+        var size = 25;
+        var maxSize = size * maxY;
+
+        var svg = d3.select( "body" )
+        .append( "svg" )
+        .attr( "width", 500 )
+        .attr( "height", 500 );
+
+        var color = d3.scaleLinear().domain([0, maxSF])
+        .range([255, 0]);
+        
+        var matriceElt = d3.select("svg")
+        .append("g")
+        .attr("transform", "translate(50,50)")
+        .attr("id", "adjacencyMatrix");
+        
+        
+        
+        var guideH = svg.append('rect')
+        .attr('x', 50)
+        .attr('y', 50)
+        .attr('width', maxSize + size)
+        .attr('height', size)
+        .attr('fill', 'transparent')
+        .attr('stroke', '#000000')
+        .attr('stroke-width', '2px')
+        
+        var guideV = svg.append('rect')
+        .attr('x', 50)
+        .attr('y', 50)
+        .attr('width', size)
+        .attr('height', maxSize + size)
+        .attr('fill', 'transparent')
+        .attr('stroke', '#000000')
+        .attr('stroke-width', '2px')
+        
+        var rectangles = matriceElt.selectAll('rect')
+        .data(matrix)
+        .enter()
+        .append('rect')
+        .attr("id", "adjacencyMatrix")
+        .attr('x', function (d) { return d.x * size; })
+        .attr('y', function (d) { return maxSize - d.y * size; })
+        .attr('width', size)
+        .attr('height', size)
+        .attr('fill', function (d) { 
+          col = color(d.sharedfollowers);
+          hexCol = Math.floor(col).toString(16);
+          if (hexCol.length == 1) {
+            hexCol = "0" + hexCol;
+          }
+          return "#" + hexCol + hexCol + "FF"; })
+        .style("stroke", "grey")
+        .style("stroke-width", 0.2)
+        .on('mouseover', function(d) {
+          guideH
+          .attr('x', 50)
+          .attr('y', maxSize - d.y * size + 50)
+          .attr('pointer-events', 'none')
+          guideV
+          .attr('x', d.x * size + 50)
+          .attr('y', 50)
+          .attr('pointer-events', 'none')
+        });
+
+        var scaleSize = nodes.length * size; 
+        x = d3.scaleBand()
+        .domain(nodes.map(function (el) {return el.id}))
+        .range([0, scaleSize]) 
+        
+        y = d3.scaleBand()
+        .domain(nodes.map(function (el) {return el.id}).reverse()) // reverse() inverse l'ordre des éléments pour que l'affichage se fasse dans le bon ordre en x : testez sans pour voir ce qui se passe.
+        .range([0, scaleSize])
+        
+        d3.select("#adjacencyMatrix")
+        .append("g")
+        .attr("transform", `translate(0, 225)`) //TODO changer X et Y pour positionner correctement l'axe
+        .call(d3.axisBottom(x))  
+        .selectAll("text")  
+        .style("text-anchor", "end")
+        .attr("dx", "-.8em")
+        .attr("dy", ".15em")
+        .attr("transform", "rotate(-65)" );  
+        
+        d3.select("#adjacencyMatrix")
+        .append("g")
+        .attr("transform", `translate(0, 0)`)
+        .call(d3.axisLeft(y));
+      });
+    });
+    </script>
+    <div>
+    </div>
+  </body>
