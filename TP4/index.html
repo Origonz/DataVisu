@@ -118,11 +118,13 @@
         .style("stroke", "grey")
         .style("stroke-width", 0.2)
         .on('mouseover', function(d) {
-          guideH
+          guideH.transition()
+          .duration(250)
           .attr('x', 50)
           .attr('y', maxSize - d.y * size + 50)
           .attr('pointer-events', 'none')
-          guideV
+          guideV.transition()
+          .duration(250)
           .attr('x', d.x * size + 50)
           .attr('y', 50)
           .attr('pointer-events', 'none')
